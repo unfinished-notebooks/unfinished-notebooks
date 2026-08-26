@@ -1,11 +1,11 @@
-# Unfinished Notebooks — Landing Page
+# Unfinished Notebooks
 
-A small, deployable landing page for **unfinishednotebooks.com**.
+The home and shared identity service for **unfinishednotebooks.com**.
 
 Current featured notebooks:
 
 - **PKO** — `pko.unfinishednotebooks.com`
-- **75 Steady** — `steady.unfinishednotebooks.com`
+- **Run It Back** — `runitback.unfinishednotebooks.com`
 - **In the Margins** — placeholder section for future notes/blog content
 
 Whalen and Hevik are intentionally **not included** in this starter.
@@ -17,7 +17,74 @@ Whalen and Hevik are intentionally **not included** in this starter.
 - Vite
 - pnpm
 - Plain CSS
-- No backend required for the landing page
+- Better Auth
+- PostgreSQL (Neon)
+- Resend magic-link email
+- Vercel Functions
+
+## Shared identity
+
+Unfinished Notebooks owns the account shared by every notebook. Authentication
+is served from `unfinishednotebooks.com/api/auth`, and production session
+cookies are scoped to `.unfinishednotebooks.com`. This means a user can sign in
+from UN, PKO, or Run It Back and remain signed in across all three.
+
+The identity database contains users, sessions, verification tokens, and the
+global `user` or `admin` role. PKO and Run It Back should keep their application
+data and product-specific permissions in their own databases.
+
+Routes:
+
+- `/login` — request a one-time sign-in link
+- `/account` — view the current shared account and sign out
+- `/admin` — global-admin landing page
+- `/api/auth/*` — Better Auth API
+
+## Configure auth
+
+1. Create a Neon Postgres database for shared UN identity.
+2. Copy `.env.example` to `.env.local`.
+3. Set `DATABASE_URL` to the Neon pooled connection string.
+4. Generate a secret with `openssl rand -base64 32` and set
+   `BETTER_AUTH_SECRET`.
+5. Set `BETTER_AUTH_URL=http://localhost:3000` locally and
+   `https://unfinishednotebooks.com` in Vercel.
+6. Create a Resend API key and set `RESEND_API_KEY`.
+7. Verify `unfinishednotebooks.com` in Resend and set `AUTH_EMAIL_FROM`.
+8. Apply the Better Auth schema with `pnpm auth:migrate`.
+
+In local development, a missing Resend key prints the one-time link to the
+server console. Production intentionally fails instead of exposing or silently
+dropping a login link.
+
+To make the first account an administrator after it has signed in once:
+
+```sql
+UPDATE "user"
+SET "role" = 'admin'
+WHERE "email" = 'your-email@example.com';
+```
+
+Every later role change should go through Better Auth's authenticated admin API.
+
+## Use auth from a subdomain app
+
+Install `better-auth`, configure its React client with the UN origin, and include
+credentials:
+
+```ts
+import { createAuthClient } from 'better-auth/react'
+import { magicLinkClient } from 'better-auth/client/plugins'
+
+export const authClient = createAuthClient({
+  baseURL: 'https://unfinishednotebooks.com',
+  fetchOptions: { credentials: 'include' },
+  plugins: [magicLinkClient()],
+})
+```
+
+Protected server operations must validate the session through Better Auth; a
+client-side route check is only presentation, not authorization.
 
 ## Prerequisites
 
@@ -41,13 +108,13 @@ This project declares its package manager in `package.json`.
 
 ```bash
 pnpm install
-pnpm dev
+pnpm dev:vercel
 ```
 
-Vite will print a local URL, usually:
+Vercel will serve the frontend and auth function together at:
 
 ```text
-http://localhost:5173
+http://localhost:3000
 ```
 
 ## Production build
@@ -148,12 +215,12 @@ Cloudflare will continue handling your DNS while Vercel hosts the site.
 
 PKO and Steady should remain separate deployable apps/projects.
 
-Eventually:
+The intended structure is:
 
 ```text
 unfinishednotebooks.com
 ├── pko.unfinishednotebooks.com
-└── steady.unfinishednotebooks.com
+└── runitback.unfinishednotebooks.com
 ```
 
 Each subdomain can point to its own Vercel project.

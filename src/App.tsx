@@ -1,3 +1,6 @@
+import { AccountPage, AdminPage, LoginPage } from './AuthPages'
+import { authClient } from './auth-client'
+
 type Project = {
   eyebrow: string
   title: string
@@ -19,11 +22,11 @@ const projects: Project[] = [
   },
   {
     eyebrow: 'Personal Systems',
-    title: '75 Steady',
+    title: 'Run It Back',
     description:
       'A game-like personal operating system for fitness, finances, projects, reading, home life, and the things I want to keep showing up for.',
     status: 'Building v1',
-    href: 'https://steady.unfinishednotebooks.com',
+    href: 'https://runitback.unfinishednotebooks.com',
     action: 'Follow the build',
   },
 ]
@@ -131,6 +134,13 @@ function HeroNotebook() {
 }
 
 function App() {
+  const path = window.location.pathname.replace(/\/$/, '') || '/'
+  const { data: session } = authClient.useSession()
+
+  if (path === '/login') return <LoginPage />
+  if (path === '/account') return <AccountPage />
+  if (path === '/admin') return <AdminPage />
+
   return (
     <div className="site-shell">
       <header className="site-header">
@@ -142,6 +152,9 @@ function App() {
           <a href="#notebooks">Notebooks</a>
           <a href="#margins">In the Margins</a>
           <a href="mailto:me@unfinishednotebooks.com">Say hello</a>
+          <a className="account-link" href={session ? '/account' : '/login'}>
+            {session ? 'Your account' : 'Sign in'}
+          </a>
         </nav>
       </header>
 
