@@ -4,8 +4,14 @@ import { Resend } from 'resend'
 import { pool } from './db.js'
 
 const isProduction = process.env.NODE_ENV === 'production'
+
+const vercelUrl = process.env.VERCEL_URL
+  ? `https://${process.env.VERCEL_URL}`
+  : undefined
+
 const authBaseUrl =
   process.env.BETTER_AUTH_URL ??
+  vercelUrl ??
   (isProduction
     ? 'https://unfinishednotebooks.com'
     : 'http://localhost:3000')
