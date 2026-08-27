@@ -3,7 +3,9 @@ import { admin, magicLink } from 'better-auth/plugins'
 import { Resend } from 'resend'
 import { pool } from './db.js'
 
-const isProduction = process.env.NODE_ENV === 'production'
+const isVercelPreview = process.env.VERCEL_ENV === 'preview'
+const isProduction =
+  process.env.NODE_ENV === 'production' && !isVercelPreview
 
 const vercelUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
