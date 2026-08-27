@@ -20,12 +20,13 @@
     "resend": "^6.5.2"
   },
   "devDependencies": {
+    "@types/pg": "^8.15.5",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
-    "@types/pg": "^8.15.5",
     "@vercel/node": "^5.5.14",
     "@vitejs/plugin-react": "^5.0.4",
     "typescript": "^5.9.0",
+    "vercel": "^59.7.0",
     "vite": "^8.0.0"
   }
 }
