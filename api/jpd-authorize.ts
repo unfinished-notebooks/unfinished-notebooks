@@ -12,8 +12,8 @@ export default async function handler(req:VercelRequest,res:VercelResponse){
   if(!/^[a-f0-9]{64}$/.test(state))return res.status(400).json({error:'Invalid state'});
   const session=await auth.api.getSession({headers:new Headers({cookie:req.headers.cookie||''})});
   if(!session?.user?.id){
-    const returnUrl=new URL('/login','https://unfinishednotebooks.com');
-    returnUrl.searchParams.set('redirectTo',new URL(req.url||'','https://unfinishednotebooks.com').toString());
+    const returnUrl=new URL('/login','https://www.unfinishednotebooks.com');
+    returnUrl.searchParams.set('redirectTo',new URL(req.url||'','https://www.unfinishednotebooks.com').toString());
     return res.redirect(302,returnUrl.toString());
   }
   const code=randomBytes(32).toString('hex');
