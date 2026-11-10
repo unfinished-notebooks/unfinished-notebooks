@@ -13,8 +13,8 @@ export default async function handler(req:VercelRequest,res:VercelResponse){
   try{
     const result=await pool.query('UPDATE jpd_auth_codes SET consumed_at=now() WHERE code_hash=$1 AND consumed_at IS NULL AND expires_at>now() RETURNING user_id',[digest(code)]);
     if(!result.rowCount)return res.status(401).end();
-    const identity=await pool.query('SELECT email FROM "user" WHERE id=$1',[result.rows[0].user_id]);
+    const identity=await pool.query('SELECT email,name FROM "user" WHERE id=$1',[result.rows[0].user_id]);
     if(!identity.rowCount)return res.status(401).end();
-    return res.status(200).json({userId:result.rows[0].user_id,email:identity.rows[0].email});
+    return res.status(200).json({userId:result.rows[0].user_id,email:identity.rows[0].email,name:identity.rows[0].name});
   }catch{return res.status(503).end()}
 }
