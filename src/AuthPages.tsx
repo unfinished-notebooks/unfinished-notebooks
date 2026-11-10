@@ -18,8 +18,10 @@ export function LoginPage() {
   const [error, setError] = useState('')
   const [sending, setSending] = useState(false)
 
+  const requested = new URLSearchParams(window.location.search).get('redirectTo')
+  const callbackURL = requested && (() => { try { const url = new URL(requested); return url.origin === window.location.origin && url.pathname === '/api/jpd-authorize' ? url.toString() : null } catch { return null } })()
   if (!isPending && session) {
-    window.location.replace('/account')
+    window.location.replace(callbackURL || '/account')
     return null
   }
 
@@ -28,10 +30,10 @@ export function LoginPage() {
     setError('')
     setSending(true)
 
-    const callbackURL = new URL('/account', window.location.origin).toString()
+    const signInCallbackURL = callbackURL || new URL('/account', window.location.origin).toString()
     const { error: authError } = await authClient.signIn.magicLink({
       email,
-      callbackURL,
+      callbackURL: signInCallbackURL,
       errorCallbackURL: new URL('/login', window.location.origin).toString(),
     })
 
